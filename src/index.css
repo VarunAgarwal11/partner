@@ -1,0 +1,444 @@
+@import "tailwindcss";
+
+/* `dark:` keys off the .dark class, not the OS. Without this line v4 defaults it to
+   prefers-color-scheme, so the handful of dark: utilities below would follow the system
+   while everything else follows the toggle — the two would disagree the moment anyone
+   overrides their OS setting. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Deep ocean blue — a trading company's paperwork is read for hours at a time, so the
+   ramp is desaturated on purpose: 600/700 carry every button and link, 50/100 tint rows
+   and nav state, and nothing in between needs to shout. */
+@theme {
+  /* Panels, cards, inputs, the main pane — everything that sits ON the page background.
+     A token rather than a literal `white` so it can stop being white; see html.dark. */
+  --color-surface: #ffffff;
+
+  --color-brand-50: #eef6fb;
+  --color-brand-100: #d6e9f5;
+  --color-brand-200: #b0d2ea;
+  --color-brand-300: #7fb4da;
+  --color-brand-400: #4f92c6;
+  --color-brand-500: #2f76ae;
+  --color-brand-600: #1f5c8f;
+  --color-brand-700: #1a4a73;
+  --color-brand-800: #183d5e;
+  --color-brand-900: #16324c;
+
+  --color-ink-50: #f7f9fb;
+  --color-ink-100: #eef1f5;
+  --color-ink-200: #dde2e9;
+  --color-ink-300: #bcc4d0;
+  --color-ink-400: #8f99a8;
+  --color-ink-500: #6b7482;
+  --color-ink-600: #545c69;
+  --color-ink-700: #424a55;
+  --color-ink-800: #333942;
+  --color-ink-900: #1f242b;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* DARK MODE — a value swap, not a second stylesheet.
+ *
+ * Every colour in this app is already a semantic token (`ink` = neutral ramp, `brand` =
+ * blue ramp, `surface` = panel) and Tailwind v4 compiles `bg-ink-100` to
+ * `background-color: var(--color-ink-100)`. So redefining the variables here re-themes all
+ * twenty component files without touching one of them, and a new component gets dark mode
+ * for free as long as it uses the tokens.
+ *
+ * `html.dark` rather than `.dark` on purpose: Tailwind emits the theme defaults on :root,
+ * which has the same specificity as .dark, and the winner would then depend on which rule
+ * the bundler happened to emit last. The extra element beats :root outright.
+ *
+ * The ink ramp is NOT arithmetically inverted — inverted hex reads muddy. It is rebuilt so
+ * the SEMANTICS hold: 50 is still "furthest back", 900 still "most prominent text". Which
+ * is why `bg-ink-50` is the page and `text-ink-900` is a heading in both themes.
+ *
+ * Elevation reverses, though, and that ordering is load-bearing: in light, a panel is
+ * lighter than the page and hover goes darker; in dark, a panel is LIGHTER than the page
+ * and hover goes lighter still. Hence 50 < surface < 100 below — get that ordering wrong
+ * and `hover:bg-ink-100` on a panel becomes invisible.
+ */
+html.dark {
+  /* Native widgets — scrollbars, the date picker, select popups, spinner arrows — are
+     drawn by the OS and ignore CSS entirely. This one line is what stops the form's date
+     and number inputs from being white rectangles on a dark page. */
+  color-scheme: dark;
+
+  --color-surface: #1a1f27;
+
+  --color-ink-50: #12161c;
+  --color-ink-100: #232a34;
+  --color-ink-200: #2f3843;
+  --color-ink-300: #3f4a57;
+  --color-ink-400: #7b8693;
+  --color-ink-500: #97a1ae;
+  --color-ink-600: #b0b9c4;
+  --color-ink-700: #c8cfd8;
+  --color-ink-800: #e0e5ea;
+  --color-ink-900: #f3f6f9;
+
+  /* Tints (50-300) darken, text/graphic steps (400-900) lighten. 600 carries the spinner
+     and the rail's "section complete" dot, so it has to read as a bright accent here —
+     which is why .btn-gradient-primary re-pins its own background below instead of
+     following 600 into the light end. */
+  --color-brand-50: #132a3d;
+  --color-brand-100: #193a52;
+  --color-brand-200: #215270;
+  --color-brand-300: #2f6d92;
+  --color-brand-400: #6fb3e6;
+  --color-brand-500: #7fbdea;
+  --color-brand-600: #93c8f0;
+  --color-brand-700: #a9d3f4;
+  --color-brand-800: #c3e0f8;
+  --color-brand-900: #dcecfb;
+
+  /* Status chips are `bg-*-100 text-*-700`, so the tint goes dark and the text goes light.
+     The whole red ramp can move because the danger BUTTON no longer draws from it — it has
+     its own .btn-danger below, for the same reason .btn-gradient-primary exists. Leaving
+     red-600 dark so that button could use it made the under-field error message 3.37:1 on
+     a dark panel, which is the one place on this form legibility is not negotiable. */
+  --color-red-50: #2c1416;
+  --color-red-100: #3d1b1e;
+  --color-red-200: #522427;
+  --color-red-300: #7f3034;
+  --color-red-600: #f87171;
+  --color-red-700: #fca5a5;
+  --color-red-800: #fecaca;
+
+  --color-green-50: #0f2418;
+  --color-green-100: #14321f;
+  --color-green-200: #1d4a2e;
+  --color-green-700: #86efac;
+  --color-green-800: #bbf7d0;
+
+  --color-amber-100: #3a2a10;
+  --color-amber-800: #fcd34d;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  font-family: var(--font-sans);
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-ink-50);
+  color: var(--color-ink-900);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+}
+
+* {
+  scrollbar-width: thin;
+}
+
+/* iOS Safari zooms the whole page in the moment a control under 16px takes focus, and it
+   never zooms back out — on a 150-field form that is one manual pinch per field, and the
+   sticky header ends up off the side of the screen for the rest of the session.
+ *
+ * An element rule rather than `text-base sm:text-sm` on each control, because the ones
+ * that carry their OWN smaller size are exactly the ones that would be missed: the role
+ * picker in the users table (text-xs), the quantity box beside a multiselect option, and
+ * react-phone-number-input's inner <input>, which this app does not render itself.
+ *
+ * Unlayered, which is what makes it win: Tailwind v4 emits every utility inside
+ * `@layer utilities`, and an unlayered declaration beats any layered one whatever the
+ * specificity — so `.text-sm` on the element does not need out-specifying here.
+ *
+ * Checkboxes and radios are excluded: they are sized by h-4/w-4, and a font-size on them
+ * only changes the box the browser draws. */
+@media (width < 40rem) {
+  input:not([type='checkbox'], [type='radio']),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* In a pane narrower than 40rem a list table becomes one card per row: the header row is
+   dropped and each cell names its own column from data-label.
+ *
+ * Replaces `min-w-[760px]` + overflow-x-auto, which on a phone left the row's own Delete
+ * button off the right edge of the screen — reachable only by sideways-scrolling a table
+ * whose rows are also the click target for opening the record. The three list pages keep
+ * ONE markup, rather than a second card-shaped copy each that has to stay in agreement
+ * with its own table.
+ *
+ * A CONTAINER query, not a media query, because the viewport is not what runs out of room:
+ * from md up the sidebar takes 16rem of it, so an iPad held portrait renders these tables
+ * into a ~26rem pane and would have gone on scrolling sideways under any `max-sm:` rule.
+ * The wrappers carry Tailwind's `@container`. */
+@container (width < 40rem) {
+  .stack-table,
+  .stack-table tbody,
+  .stack-table tr,
+  .stack-table td {
+    display: block;
+  }
+
+  .stack-table thead {
+    display: none;
+  }
+
+  .stack-table td {
+    padding: 0.25rem 1rem;
+  }
+
+  .stack-table tr {
+    padding: 0.5rem 0;
+  }
+
+  /* Label left, answer right — the shape the missing header row used to give them. Cells
+     with no data-label (the actions column, the "role still in use" alert) stay plain
+     blocks and keep their own alignment. */
+  .stack-table td[data-label] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .stack-table td[data-label]::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    /* ink-500, the same step the <thead> these replace uses. Not ink-400: that is 2.88:1
+       on a panel — passable for the muted icons it is meant for, not for text. */
+    color: var(--color-ink-500);
+  }
+
+  /* The row actions are xs pills, sized for a dense table. In card form they are the only
+     tap targets on the row, so they get a thumb-sized box instead. */
+  .stack-table td button {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.8125rem;
+  }
+}
+
+/* Solid panel utilities (the `glass-` names are inherited from the house style; nothing
+   here is actually translucent, and making it so would cost legibility over a table). */
+.glass-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-ink-200);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.glass-panel-strong {
+  background: var(--color-surface);
+  border: 1px solid var(--color-ink-200);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+.glass-sidebar {
+  background: var(--color-surface);
+  border: 1px solid var(--color-ink-200);
+  box-shadow: 0 4px 24px -10px rgba(15, 23, 42, 0.1);
+}
+
+.app-main-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-ink-200);
+  box-shadow:
+    0 2px 4px rgba(15, 23, 42, 0.04),
+    0 12px 40px -12px rgba(15, 23, 42, 0.14);
+}
+
+.app-ambient-bg {
+  background: var(--color-ink-50);
+}
+
+.glass-input {
+  background: var(--color-surface);
+  border: 1px solid var(--color-ink-200);
+}
+
+/* Before the focus-visible block on purpose: equal specificity, so source order decides
+   and a field that is both focused and hovered keeps its focus ring. */
+.glass-input:hover:not(:disabled) {
+  border-color: var(--color-ink-300);
+}
+
+.glass-input:focus-visible {
+  border-color: var(--color-brand-400);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand-300) 35%, transparent);
+}
+
+/* Hover-highlighting the option under the cursor.
+ *
+ * A native <select> popup is drawn by the OS, so `option:hover` does nothing there. The
+ * only way to reach it is `appearance: base-select`, which swaps the OS widget for real
+ * DOM the page can style (Chrome 135+; not yet Firefox or Safari).
+ *
+ * Wrapped in @supports so this is purely additive: a browser without it keeps the exact
+ * native dropdown that was there before, arrow and all. Nothing here can regress that.
+ */
+@supports (appearance: base-select) {
+  select.glass-input,
+  select.glass-input::picker(select) {
+    appearance: base-select;
+  }
+
+  /* The picker is a fresh element with no styling of its own — it needs the panel look
+     the native popup used to provide for free. */
+  select.glass-input::picker(select) {
+    border: 1px solid var(--color-ink-200);
+    border-radius: 0.75rem;
+    background: var(--color-surface);
+    padding: 0.25rem;
+    box-shadow: 0 10px 30px rgb(31 36 43 / 12%);
+  }
+
+  select.glass-input option {
+    padding: 0.5rem 0.625rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--color-ink-800);
+  }
+
+  /* The point of all of this: which row the cursor is on, before committing to it.
+     :checked is styled too — once the popup is themed, the OS no longer marks the
+     current value either, so it has to be said here or it goes unmarked. */
+  select.glass-input option:hover,
+  select.glass-input option:focus {
+    background: var(--color-brand-50);
+    color: var(--color-ink-900);
+  }
+
+  select.glass-input option:checked {
+    background: var(--color-brand-100);
+    font-weight: 500;
+  }
+
+  select.glass-input::picker-icon {
+    color: var(--color-ink-400);
+    transition: transform 0.15s;
+  }
+
+  select.glass-input:open::picker-icon {
+    transform: rotate(180deg);
+  }
+}
+
+.btn-gradient-primary {
+  background: var(--color-brand-600);
+}
+
+.btn-gradient-primary:hover {
+  background: var(--color-brand-700);
+}
+
+/* The primary button is the one place the brand ramp cannot simply be followed: it carries
+   `text-white`, and 600/700 are bright accents in dark mode. It takes the ramp's dark end
+   instead — white on brand-300 is 5.7:1, on brand-200 7.7:1. */
+html.dark .btn-gradient-primary {
+  background: var(--color-brand-300);
+}
+
+html.dark .btn-gradient-primary:hover {
+  background: var(--color-brand-200);
+}
+
+/* Same problem as the primary button, same solution: it carries `text-white`, so it needs a
+   red that stays DARK in dark mode — while `text-red-600` (every "this field is required"
+   message) needs one that goes light. One step cannot be both, and the error message is the
+   one that has to win, so the button takes its colour from here instead of from the ramp. */
+.btn-danger {
+  background: var(--color-red-600);
+}
+
+.btn-danger:hover {
+  background: var(--color-red-700);
+}
+
+html.dark .btn-danger {
+  background: #a01c1c;
+}
+
+html.dark .btn-danger:hover {
+  background: #b52222;
+}
+
+/* Shadows are a dark navy, which is invisible against a dark page — the panels would lose
+   their edge and the sidebar would flatten into the background. Same geometry, near-black
+   and heavier. */
+html.dark .glass-panel {
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+}
+
+html.dark .glass-panel-strong {
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.45);
+}
+
+html.dark .glass-sidebar {
+  box-shadow: 0 4px 24px -10px rgb(0 0 0 / 0.6);
+}
+
+html.dark .app-main-panel {
+  box-shadow:
+    0 2px 4px rgb(0 0 0 / 0.35),
+    0 12px 40px -12px rgb(0 0 0 / 0.55);
+}
+
+.toast-success {
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #14532d;
+}
+
+.toast-error {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #991b1b;
+}
+
+/* Tokens, so this one needs no dark variant at all — it follows the swap like everything
+   else. Only success and error below need real overrides, because "worked" and "failed"
+   have to stay green and red whatever the brand ramp is doing. */
+.toast-info {
+  background: var(--color-surface);
+  border-color: var(--color-ink-200);
+  color: var(--color-ink-700);
+}
+
+/* Was @media (prefers-color-scheme: dark), which meant these three followed the OS while
+   the rest of the app stayed light — a dark toast over a white page for anyone whose laptop
+   was in dark mode. Now they follow the same class as everything else. */
+html.dark .toast-success {
+  background: #14532d;
+  border-color: #15803d;
+  color: #dcfce7;
+}
+
+html.dark .toast-error {
+  background: #450a0a;
+  border-color: #991b1b;
+  color: #fecaca;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
