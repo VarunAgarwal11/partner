@@ -1,0 +1,35 @@
+# The partner-facing portal. One container, static files, nothing to configure at run
+# time — every setting this app has was decided by `vite build` inside the image.
+#
+# ONE image serves all three kinds. supplier, buyer and logistics_cha get the same
+# bundle: src/config/portals.js reads the kind off the session at runtime, so there is no
+# per-kind build and no reason for a second container even if the three ever get their
+# own hostnames.
+#
+# Separate from backend/docker-compose.yml because partner-portal/ and backend/ are
+# independent repos (see CLAUDE.md). A single root compose would need
+# `context: ../partner-portal`, making each repo's deploy depend on a sibling checkout.
+
+# Pinned rather than derived from the directory name. Compose adopts an existing
+# container only when the project matches, so a clone at a different path turns
+# `container_name: mavio-partner-portal` into a name collision instead of a replacement.
+# The give-away is compose also reporting `Network Created` on what should be a redeploy.
+name: mavio-partner-portal
+
+services:
+
+  partner-portal:
+    build: .
+    container_name: mavio-partner-portal
+
+    ports:
+      # Loopback only. The host nginx terminates TLS for partner.mavioglobal.com and is
+      # the sole thing allowed to reach this. 5181 matches the Vite dev port so one
+      # number means the same app in both places.
+      - "127.0.0.1:5181:80"
+
+    # No env_file, deliberately: every VITE_* is a build-time inline into the public
+    # bundle, so a variable set here would be read by nothing. In particular
+    # VITE_API_URL must stay unset — see the Dockerfile.
+
+    restart: always

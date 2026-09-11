@@ -1,0 +1,28 @@
+# `COPY . .` copies the whole build context into a layer that stays readable in the image
+# even if a later stage drops the file. Keep secrets and build junk out.
+
+# Any VITE_* here is inlined into the public bundle, so these hold no secret by design —
+# but a local .env would override the intended same-origin '/api' fallback at build time
+# and quietly point the image at someone's laptop.
+.env
+.env.*
+!.env.example
+
+# Built on the host. Copying it in would waste a layer and then be overwritten by
+# `npm run build` anyway — or worse, survive as a stale bundle if the build ever changes
+# its output path.
+dist
+dist-ssr
+
+# Reinstalled by `npm ci` in the image. A host node_modules is also the wrong platform
+# (esbuild and the Tailwind oxide binary are native) and would shadow the correct one.
+node_modules
+
+.git
+.gitignore
+.vercel
+.claude
+*.log
+.vscode
+.idea
+.DS_Store
